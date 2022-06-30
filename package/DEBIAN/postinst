@@ -1,0 +1,18 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "configure" ]; then
+
+    ZTS_DIR=$(ls /usr/local/lib/php/extensions/|grep zts);
+    LIB_DIR="/usr/local/lib/php/extensions/${ZTS_DIR}";
+
+    if [ -d "$LIB_DIR" ] && [ ! -f "${LIB_DIR}/pulsar-phpcpp.so" ]; then
+       ln -s ../pulsar-phpcpp.so "${LIB_DIR}/pulsar-phpcpp.so"
+    fi
+
+fi
+
+
+
+exit 0
