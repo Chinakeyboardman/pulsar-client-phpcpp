@@ -1,0 +1,6 @@
+Package: php-pulsar-client
+Version: 1.0
+Architecture: amd64
+Maintainer: Lukas Kraus <krausl@hptronic.cz>
+Depends: apache-pulsar-client (>= 2.8.1)
+Description: Apache Pulsar client library for PHP

@@ -1,0 +1,16 @@
+Index: include/throwable.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/include/throwable.h b/include/throwable.h
+--- a/include/throwable.h	(revision f5e38d75fd2a9005aee19459751dab03eb76cab8)
++++ b/include/throwable.h	(revision a1bca4cf8d4c5328c80b3773958d952256e81fc3)
+@@ -11,6 +11,7 @@
+  */
+ #include <exception>
+ #include <string>
++#include <stdexcept>
+ 
+ /**
+  *  Forward declarations

@@ -1,0 +1,209 @@
+Index: include/file.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/include/file.h b/include/file.h
+--- a/include/file.h	(revision 499e71bbc7d03849dc9077c8cac075f723b0dde7)
++++ b/include/file.h	(revision d743067bf48e80e16034fb381d19edcda9fc399b)
+@@ -6,8 +6,8 @@
+  *
+  *  @author Emiel Bruijntjes <emiel.bruijntjes@copernica.com>
+  *  @copyright 2014 Copernica BV
++ *
+  */
+-
+ /**
+  *  Forward declarations
+  */
+@@ -42,6 +42,15 @@
+      */
+     File(const char *name) : File(name, ::strlen(name)) {}
+ 
++    /**
++     *  Alternative constructor with zend_string filename
++     *  and size of the string
++     *
++     *  @param  name        the filename
++     *  @param  size        size of the filename
++     */
++    File(const _zend_string *name, size_t size);
++
+     /**
+      *  Alternative constructor with a string object
+      *  @param  name        the filename
+@@ -88,7 +97,7 @@
+      *  The full resolved path name
+      *  @var struct _zend_string*
+      */
+-    struct _zend_string *_path = nullptr;
++    struct _zend_string *_path = nullptr;
+ 
+     /**
+      *  The opcodes of this file
+@@ -108,3 +117,4 @@
+  *  End of namespace
+  */
+ }
++
+Index: zend/file.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/zend/file.cpp b/zend/file.cpp
+--- a/zend/file.cpp	(revision 499e71bbc7d03849dc9077c8cac075f723b0dde7)
++++ b/zend/file.cpp	(revision d743067bf48e80e16034fb381d19edcda9fc399b)
+@@ -5,6 +5,7 @@
+  *
+  *  @author Emiel Bruijntjes <emiel.bruijntjes@copernica.com>
+  *  @copyright 2014 Copernica BV
++ *
+  */
+ 
+ /**
+@@ -26,10 +27,16 @@
+  *  @param  name        the filename
+  *  @param  size        length of the filename
+  */
+-File::File(const char *name, size_t size)
++File::File(const _zend_string *name, size_t size)
+ {
+-    // resolve the path
+-    _path = zend_resolve_path(name, size);
++    /**
++    *
++    * Assign `const` zend_string as a non-const variable to resolve typing error.
++    * error: invalid conversion from ‘const zend_string*’ {aka ‘const _zend_string*’} to ‘zend_string*’ {aka ‘_zend_string*’}
++    * zend_resolve_path now only accepts the filename argument.
++    */
++    zend_string *tmp_str = zend_string_init_fast(ZSTR_VAL(name), ZSTR_LEN(name));
++    _path = zend_resolve_path(tmp_str);
+ }
+ 
+ /**
+@@ -53,11 +60,16 @@
+     // is the file already compiled?
+     if (_opcodes) return _opcodes->valid();
+ 
+-    // we are going to open the file
++    // open the file
+     zend_file_handle fileHandle;
++    /**
++     *  zend_stream_open now only accepts the fileHandle object
++     *  Filename must now be set through the object path.
++    */
++    fileHandle.filename = _path;
+ 
+     // open the file
+-    if (zend_stream_open(ZSTR_VAL(_path), &fileHandle) == FAILURE) return false;
++    if (zend_stream_open(&fileHandle) == FAILURE) return false;
+ 
+     // make sure the path name is stored in the handle (@todo: is this necessary? do we need the copy?)
+     if (!fileHandle.opened_path) fileHandle.opened_path = zend_string_copy(_path);
+Index: zend/value.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/zend/value.cpp b/zend/value.cpp
+--- a/zend/value.cpp	(revision 499e71bbc7d03849dc9077c8cac075f723b0dde7)
++++ b/zend/value.cpp	(revision d743067bf48e80e16034fb381d19edcda9fc399b)
+@@ -23,7 +23,10 @@
+  *
+  *  @author Emiel Bruijntjes <emiel.bruijntjes@copernica.com>
+  *  @copyright 2013 - 2019 Copernica BV
++ *
++ *
+  */
++
+ #include "includes.h"
+ #include "string.h"
+ #include "lowercase.h"
+@@ -162,7 +165,7 @@
+         // increment refcount
+         ++GC_REFCOUNT(ref);
+ #else
+-	// increment refcount
++    // increment refcount
+         GC_ADDREF(ref);
+ #endif
+         // store the reference in our value
+@@ -314,7 +317,7 @@
+ void Value::invalidate()
+ {
+     // do nothing if object is already undefined
+-	if (Z_TYPE_P(_val) == IS_UNDEF) return;
++    if (Z_TYPE_P(_val) == IS_UNDEF) return;
+ 
+     // call destructor
+     zval_ptr_dtor(_val);
+@@ -1109,7 +1112,7 @@
+     if (this->type() == type) return *this;
+ 
+     // if this is not a reference variable, we should detach it to implement copy on write
+-    SEPARATE_ZVAL_IF_NOT_REF(_val);
++    SEPARATE_ZVAL_NOREF(_val);
+ 
+     // run the conversion, when it fails we throw a fatal error that ends up in PHP space
+     switch (type) {
+@@ -1629,7 +1632,7 @@
+ void Value::setRaw(int index, const Value &value)
+ {
+     // if this is not a reference variable, we should detach it to implement copy on write
+-    SEPARATE_ZVAL_IF_NOT_REF(_val);
++    SEPARATE_ZVAL_NOREF(_val);
+ 
+     // add the value (this will decrement refcount on any current variable)
+     add_index_zval(_val, index, value._val);
+@@ -1678,7 +1681,7 @@
+     if (isObject())
+     {
+         // if this is not a reference variable, we should detach it to implement copy on write
+-        SEPARATE_ZVAL_IF_NOT_REF(_val);
++        SEPARATE_ZVAL_NOREF(_val);
+ 
+         // update the property
+ #if PHP_VERSION_ID < 70100
+@@ -1696,7 +1699,7 @@
+     else
+     {
+         // if this is not a reference variable, we should detach it to implement copy on write
+-        SEPARATE_ZVAL_IF_NOT_REF(_val);
++        SEPARATE_ZVAL_NOREF(_val);
+ 
+         // add the value (this will reduce the refcount of the current value)
+         add_assoc_zval_ex(_val, key, size, value._val);
+@@ -1742,7 +1745,7 @@
+     if (!isArray()) return;
+ 
+     // if this is not a reference variable, we should detach it to implement copy on write
+-    SEPARATE_ZVAL_IF_NOT_REF(_val);
++    SEPARATE_ZVAL_NOREF(_val);
+ 
+     // remove the index
+     zend_hash_index_del(Z_ARRVAL_P(_val.dereference()), index);
+@@ -1759,7 +1762,7 @@
+     if (isObject())
+     {
+         // if this is not a reference variable, we should detach it to implement copy on write
+-        SEPARATE_ZVAL_IF_NOT_REF(_val);
++        SEPARATE_ZVAL_NOREF(_val);
+ 
+         // in the zend header files, unsetting properties is redirected to setting it to null...
+         add_property_null_ex(_val, key, size);
+@@ -1767,7 +1770,7 @@
+     else if (isArray())
+     {
+         // if this is not a reference variable, we should detach it to implement copy on write
+-        SEPARATE_ZVAL_IF_NOT_REF(_val);
++        SEPARATE_ZVAL_NOREF(_val);
+ 
+         // remove the index
+         zend_hash_del(Z_ARRVAL_P(_val.dereference()), String(key, size));
+@@ -1876,3 +1879,5 @@
+  */
+ }
+
++
++
