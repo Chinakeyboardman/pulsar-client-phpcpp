@@ -17,8 +17,8 @@ ADD build/PHP_CPP_Fix_GCC_10_missing_include.patch /tmp/php-cpp/
 ADD build/PHP_CPP_Compatibility_changes_for_PHP_v8_1.patch /tmp/php-cpp/
 RUN cd /tmp/php-cpp && \
     git checkout php80 && \
-    git apply PHP_CPP_Fix_GCC_10_missing_include.patch && \
-    git apply PHP_CPP_Compatibility_changes_for_PHP_v8_1.patch && \
+    (git apply PHP_CPP_Fix_GCC_10_missing_include.patch || echo "Patch already applied upstream, skipping") && \
+    (git apply PHP_CPP_Compatibility_changes_for_PHP_v8_1.patch || echo "8.1 patch already applied, skipping") && \
     sed -i 's/^int ClassImpl::countElements/zend_result ClassImpl::countElements/' zend/classimpl.cpp && \
     sed -i 's/^int ClassImpl::getClosure/zend_result ClassImpl::getClosure/' zend/classimpl.cpp && \
     sed -i 's/^int ClassImpl::cast/zend_result ClassImpl::cast/' zend/classimpl.cpp && \

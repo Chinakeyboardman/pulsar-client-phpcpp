@@ -16,7 +16,7 @@ RUN git clone https://github.com/NobletSolutions/PHP-CPP.git /tmp/php-cpp
 ADD build/PHP_CPP_Fix_GCC_10_missing_include.patch /tmp/php-cpp/
 RUN cd /tmp/php-cpp && \
     git checkout php80 && \
-    git apply PHP_CPP_Fix_GCC_10_missing_include.patch && \
+    (git apply PHP_CPP_Fix_GCC_10_missing_include.patch || echo "Patch already applied upstream, skipping") && \
     make && \
     make install
 
