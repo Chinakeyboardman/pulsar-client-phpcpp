@@ -17,9 +17,9 @@
  </description>
 
  <lead>
-  <name>chinakeyboardman</name>
+  <name>Jiawei Chen</name>
   <user>chinakeyboardman</user>
-  <email>TODO@example.com</email>
+  <email>chinakeyboardman@gmail.com</email>
   <active>yes</active>
  </lead>
 
@@ -88,6 +88,20 @@
    <dir name="examples">
     <file role="doc" name="test-producer.php"/>
     <file role="doc" name="test-consumer.php"/>
+   </dir>
+   <dir name="tests">
+    <dir name="phpt">
+     <file role="test" name="001-extension-loaded.phpt"/>
+     <file role="test" name="002-classes-exist.phpt"/>
+     <file role="test" name="003-client-construct.phpt"/>
+     <file role="test" name="004-message-builder.phpt"/>
+     <file role="test" name="005-message-properties.phpt"/>
+     <file role="test" name="006-message-id-static.phpt"/>
+     <file role="test" name="007-message-id-serialize.phpt"/>
+     <file role="test" name="008-producer-config.phpt"/>
+     <file role="test" name="009-consumer-config.phpt"/>
+     <file role="test" name="010-client-config.phpt"/>
+    </dir>
    </dir>
   </dir>
  </contents>
