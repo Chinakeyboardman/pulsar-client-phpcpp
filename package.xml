@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package version="2.0"
+         xmlns="http://pear.php.net/dtd/package-2.0"
+         xmlns:tasks="http://pear.php.net/dtd/tasks-1.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
+                             http://pear.php.net/dtd/tasks-1.0.xsd
+                             http://pear.php.net/dtd/package-2.0
+                             http://pear.php.net/dtd/package-2.0.xsd">
+ <name>pulsar</name>
+ <channel>pecl.php.net</channel>
+ <summary>Apache Pulsar client extension for PHP</summary>
+ <description>
+  PHP extension providing native bindings to the Apache Pulsar C++ client
+  library. Supports producers, consumers, readers, message building,
+  TLS/authentication, batching, compression, and more.
+ </description>
+
+ <lead>
+  <name>chinakeyboardman</name>
+  <user>chinakeyboardman</user>
+  <email>TODO@example.com</email>
+  <active>yes</active>
+ </lead>
+
+ <date>2026-05-14</date>
+ <time>12:00:00</time>
+
+ <version>
+  <release>2.0.0</release>
+  <api>2.0.0</api>
+ </version>
+
+ <stability>
+  <release>stable</release>
+  <api>stable</api>
+ </stability>
+
+ <license uri="https://www.apache.org/licenses/LICENSE-2.0">Apache License 2.0</license>
+
+ <notes>
+  - Migrated license from MIT to Apache License 2.0
+  - Added ProducerConfiguration, Reader, and MessageId classes
+  - Expanded Message with getMessageId, getProperties, getPublishTimestamp, etc.
+  - Added Producer::sendAsync (fire-and-forget) and flush()
+  - Expanded ConsumerConfiguration with subscriptionInitialPosition, consumerName, etc.
+  - Added Consumer::negativeAcknowledge and close
+  - Proper exception handling throughout (throws Php\Exception on errors)
+  - Fixed MessageBuilder method name typos (setPartiionKey -> setPartitionKey)
+  - Fixed memory leak in MessageId::serialize
+  - Support for PHP 7.4 through 8.4
+  - Added config.m4 for phpize-based builds
+  - Added GitHub Actions CI
+ </notes>
+
+ <contents>
+  <dir name="/">
+   <file role="doc" name="LICENSE"/>
+   <file role="doc" name="NOTICE"/>
+   <file role="doc" name="README.md"/>
+   <file role="doc" name="CONTRIBUTING.md"/>
+   <file role="doc" name="CHANGELOG.md"/>
+   <file role="src" name="config.m4"/>
+   <file role="src" name="Makefile"/>
+   <dir name="src">
+    <file role="src" name="Client.cpp"/>
+    <file role="src" name="Client.h"/>
+    <file role="src" name="ClientConfiguration.cpp"/>
+    <file role="src" name="ClientConfiguration.h"/>
+    <file role="src" name="Consumer.cpp"/>
+    <file role="src" name="Consumer.h"/>
+    <file role="src" name="ConsumerConfiguration.cpp"/>
+    <file role="src" name="ConsumerConfiguration.h"/>
+    <file role="src" name="Message.cpp"/>
+    <file role="src" name="Message.h"/>
+    <file role="src" name="MessageBuilder.cpp"/>
+    <file role="src" name="MessageBuilder.h"/>
+    <file role="src" name="MessageId.cpp"/>
+    <file role="src" name="MessageId.h"/>
+    <file role="src" name="Producer.cpp"/>
+    <file role="src" name="Producer.h"/>
+    <file role="src" name="ProducerConfiguration.cpp"/>
+    <file role="src" name="ProducerConfiguration.h"/>
+    <file role="src" name="Reader.cpp"/>
+    <file role="src" name="Reader.h"/>
+    <file role="src" name="Pulsar.cpp"/>
+   </dir>
+   <dir name="examples">
+    <file role="doc" name="test-producer.php"/>
+    <file role="doc" name="test-consumer.php"/>
+   </dir>
+  </dir>
+ </contents>
+
+ <dependencies>
+  <required>
+   <php>
+    <min>7.4.0</min>
+    <max>8.4.99</max>
+   </php>
+   <pearinstaller>
+    <min>1.10.0</min>
+   </pearinstaller>
+  </required>
+ </dependencies>
+
+ <providesextension>pulsar</providesextension>
+
+ <extsrcrelease/>
+</package>

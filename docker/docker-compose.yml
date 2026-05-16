@@ -1,0 +1,38 @@
+services:
+  pulsar:
+    image: apachepulsar/pulsar:2.8.2
+    command: bin/pulsar standalone
+    ports:
+      - "6650:6650"
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/admin/v2/brokers/health"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+
+  php-tests:
+    build:
+      context: ..
+      dockerfile: docker/php83.Dockerfile
+    depends_on:
+      pulsar:
+        condition: service_healthy
+    environment:
+      PULSAR_SERVICE_URL: "pulsar://pulsar:6650"
+    volumes:
+      - ../tests:/tests:ro
+    command: >
+      bash -c "
+        echo '=== Running phpt tests ===' &&
+        bash /tests/run-tests.sh &&
+        echo '' &&
+        echo '=== Running integration tests ===' &&
+        php /tests/integration/test-produce-consume.php &&
+        php /tests/integration/test-reader.php &&
+        php /tests/integration/test-async-send.php &&
+        php /tests/integration/test-negative-ack.php &&
+        echo '' &&
+        echo 'All tests passed!'
+      "

@@ -1,0 +1,83 @@
+name: Build & Verify Extension
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - { version: "74", tag: "7.4", dockerfile: "docker/php74.Dockerfile" }
+          - { version: "80", tag: "8.0", dockerfile: "docker/php80.Dockerfile" }
+          - { version: "81", tag: "8.1", dockerfile: "docker/php81.Dockerfile" }
+          - { version: "82", tag: "8.2", dockerfile: "docker/php82.Dockerfile" }
+          - { version: "83", tag: "8.3", dockerfile: "docker/php83.Dockerfile" }
+          - { version: "84", tag: "8.4", dockerfile: "docker/php84.Dockerfile" }
+
+    name: PHP ${{ matrix.php.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -f ${{ matrix.php.dockerfile }} -t pulsar-phpcpp:${{ matrix.php.tag }} .
+
+      - name: Verify extension loads
+        run: |
+          docker run --rm pulsar-phpcpp:${{ matrix.php.tag }} php -m | grep -q pulsar
+          echo "Extension verified for PHP ${{ matrix.php.tag }}"
+
+      - name: Show extension info
+        run: docker run --rm pulsar-phpcpp:${{ matrix.php.tag }} php --ri pulsar-phpcpp || true
+
+      - name: Run phpt tests
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/tests:/tests:ro \
+            pulsar-phpcpp:${{ matrix.php.tag }} \
+            bash /tests/run-tests.sh
+
+      - name: Extract artifacts
+        run: |
+          mkdir -p dist/php${{ matrix.php.version }}
+          CONTAINER=$(docker create pulsar-phpcpp:${{ matrix.php.tag }})
+          docker cp "$CONTAINER:/tmp/pulsar-client-phpcpp/pulsar-phpcpp.so" dist/php${{ matrix.php.version }}/ || true
+          docker cp "$CONTAINER:/tmp/pulsar-client-phpcpp/php${{ matrix.php.version }}-pulsar-client.deb" dist/php${{ matrix.php.version }}/ || true
+          docker rm "$CONTAINER"
+
+      - name: Upload .so artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: so-php-${{ matrix.php.tag }}
+          path: dist/php${{ matrix.php.version }}/pulsar-phpcpp.so
+          if-no-files-found: warn
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-php-${{ matrix.php.tag }}
+          path: dist/php${{ matrix.php.version }}/*.deb
+          if-no-files-found: warn
+
+  integration:
+    runs-on: ubuntu-latest
+    needs: build
+    name: Integration Tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run integration tests
+        run: |
+          docker compose -f docker/docker-compose.yml up \
+            --build --abort-on-container-exit --exit-code-from php-tests
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker/docker-compose.yml down -v

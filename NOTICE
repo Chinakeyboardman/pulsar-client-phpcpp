@@ -1,0 +1,13 @@
+Apache Pulsar Client PHP-CPP Extension
+Copyright 2022-2026 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+This project is based on prior work by oraoto
+(https://github.com/oraoto/pulsar-client-phpcpp), which was
+originally licensed under the MIT License.
+
+This project wraps the Apache Pulsar C++ Client library
+(https://github.com/apache/pulsar-client-cpp), which is licensed
+under the Apache License 2.0.

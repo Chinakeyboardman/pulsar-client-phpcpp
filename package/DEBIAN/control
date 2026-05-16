@@ -1,6 +1,8 @@
 Package: php-pulsar-client
-Version: 1.0
+Version: 2.0.0
 Architecture: amd64
-Maintainer: Lukas Kraus <krausl@hptronic.cz>
+Maintainer: chinakeyboardman
 Depends: apache-pulsar-client (>= 2.8.1)
-Description: Apache Pulsar client library for PHP
+Description: Apache Pulsar client extension for PHP
+ Native PHP extension providing bindings to the Apache Pulsar C++ client.
+ Supports producers, consumers, readers, TLS, batching, and compression.
