@@ -9,6 +9,16 @@ if [ ! -d "$PHPT_DIR" ]; then
     exit 1
 fi
 
+# run-tests.php writes temp files (.php, .log, …) next to each .phpt file.
+# When the source tree is mounted read-only (e.g. Docker `:ro`), this fails.
+# Copy tests to a writable tmpdir so run-tests.php can work normally.
+if [ ! -w "$PHPT_DIR" ]; then
+    WORK_DIR="$(mktemp -d)"
+    cp -a "$PHPT_DIR" "$WORK_DIR/phpt"
+    PHPT_DIR="$WORK_DIR/phpt"
+    echo "Tests copied to writable directory: $PHPT_DIR"
+fi
+
 PHP_BIN="${PHP_BIN:-php}"
 RUN_TESTS="$("$PHP_BIN" -r 'echo PHP_BINARY;' | xargs dirname)/../lib/php/build/run-tests.php"
 
